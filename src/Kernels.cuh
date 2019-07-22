@@ -611,4 +611,7 @@ __global__ void pathLengthDistanceKernel(int numValues, double *pathLengths,
   }
 }
 
+int test_me(void);
+
 } // namespace cubble
+

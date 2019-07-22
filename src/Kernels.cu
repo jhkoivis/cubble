@@ -721,4 +721,9 @@ __device__ double calculatePathLength(int idx, double *x, double *xPrev,
   return diff * diff;
 }
 
+int test_me(void){
+	return 27;
+}
+
 } // namespace cubble
+
