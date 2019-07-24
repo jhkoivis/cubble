@@ -15,5 +15,5 @@ int main(int argc, char **argv)
   std::cout << "run" << std::endl;
   TEST_tests_are_running();
   TEST_cubble_simple();
-  TEST_simple_kernel();
+  TEST_simple_cuda();
 }

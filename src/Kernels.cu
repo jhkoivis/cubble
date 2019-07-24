@@ -725,5 +725,12 @@ int test_me(void){
 	return 27;
 }
 
+__global__ void cuda_test(int *x, int *y, int *z)
+{
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	printf("thread id = %i\n", i);
+	z[i] = x[i] + y[i];
+}
+
 } // namespace cubble
 
