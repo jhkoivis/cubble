@@ -611,8 +611,7 @@ __global__ void pathLengthDistanceKernel(int numValues, double *pathLengths,
   }
 }
 
-int test_me(void);
-__device__ void ctst(float *x, float *y, float *z, int N);
+__device__ void test_vec_add(float *x, float *y, float *z, int N);
 
 } // namespace cubble
 

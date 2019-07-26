@@ -721,15 +721,15 @@ __device__ double calculatePathLength(int idx, double *x, double *xPrev,
   return diff * diff;
 }
 
-int test_me(void){
-	return 27;
-}
-
-__device__ void ctst(float *x, float *y, float *z, int N)
+__device__ void test_vec_add(float *x, float *y, float *z, int N)
 {
-	int i = threadIdx.x + blockIdx.x * blockDim.x;
-	printf("thread id = %i\n", i);
-	z[i] = x[i] + y[i];
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (tid < N){
+		z[tid] = x[tid] + y[tid];
+		//printf("z[%d] = x[%d] + y[%d] = %f + %f = %f\n", tid, tid, tid, x[tid], y[tid], z[tid]);
+	}
+
 }
 
 } // namespace cubble
