@@ -118,7 +118,7 @@ endif
 
 .PHONY : all
 all : | $(BIN_PATH)
-	@$(MAKE) -j8 $(EXEC)
+	$(MAKE) -j8 $(EXEC)
 
 
 # -----------------------------------------------------
@@ -126,8 +126,9 @@ all : | $(BIN_PATH)
 # -----------------------------------------------------
 
 # By default has some safety nets at place but also uses some optimizations.
-$(EXEC) : $(HEADERS) $(OBJS) $(GPU_CODE)
-	@$(C_CPU) $(PROFILING_FLAGS) $(OBJS) $(GPU_CODE) $(LIBS) -o $@  -I../incl/googletest/ -L../incl/googletest/lib64 -lgtest -lgmock -lgtest_main
+# $(EXEC) : $(HEADERS) $(OBJS) $(GPU_CODE)
+$(EXEC) : $(OBJS)
+	@$(C_CPU) -Wall -std=c++11 -pthread $(PROFILING_FLAGS) $(OBJS) $(LIBS) -o $@  -I./ -I../incl/googletest/include -L../incl/googletest/lib64 -lgtest -lgmock -lgtest_main
 
 
 # -----------------------------------------------------
@@ -135,7 +136,7 @@ $(EXEC) : $(HEADERS) $(OBJS) $(GPU_CODE)
 # -----------------------------------------------------
 
 $(GPU_CODE) : $(GPU_OBJS)
-	@$(C_GPU) $(PROFILING_FLAGS) $(GPU_ARCH) -dlink $^ -o $@
+	@$(C_GPU) -Wall -std=c++11 -pthread $(PROFILING_FLAGS) $(GPU_ARCH) -dlink $^ -o $@
 
 
 # -----------------------------------------------------
@@ -146,13 +147,13 @@ $(GPU_CODE) : $(GPU_OBJS)
 $(BIN_PATH)/%.o : $(SRC_PATH)/%.cpp
 	@$(eval OPTIONS = $(CPU_FLAGS) $(COMMON_FLAGS) \
 	$(OPTIM_FLAGS) $(DEFINES) $(PROFILING_FLAGS))
-	@$(C_CPU) $< $(OPTIONS) -c  -I../incl/googletest/ -o $@
+	@$(C_CPU) -Wall -std=c++11 -pthread $< $(OPTIONS) -c  -I./ -I../incl/googletest/include/ -o $@
 
 # GPU code
 $(BIN_PATH)/%.o : $(SRC_PATH)/%.cu
 	@$(eval OPTIONS = $(GPU_FLAGS) $(COMMON_FLAGS) \
 	$(OPTIM_FLAGS) $(DEFINES) $(NVCC_DEFINES) $(PROFILING_FLAGS))
-	@$(C_GPU) $< $(OPTIONS) -dc -o $@
+	@$(C_GPU) $< $(OPTIONS) -dc -I./ -I../incl/googletest/include/gtest -o $@
 
 # -----------------------------------------------------
 # Clean up
