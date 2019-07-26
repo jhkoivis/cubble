@@ -3,6 +3,7 @@
 // Copyright (c) 2019
 //
 #include "gtest/gtest.h"
+#include "tests.cuh"
 
 
 TEST(test_timesFive, integerTests){

@@ -2,7 +2,7 @@
 # How many dimensions to simulate.
 # -----------------------------------------------------
 
-NUM_DIM := 2
+NUM_DIM := 3
 
 
 # -----------------------------------------------------
@@ -18,7 +18,7 @@ PBC_Z := 1
 # Use flow or not?
 # -----------------------------------------------------
 
-USE_FLOW := 1
+USE_FLOW := 0
 
 
 # -----------------------------------------------------
@@ -41,7 +41,7 @@ BIN_PATH := bin
 SRC_PATH := ../src
 
 # Included (external) headers
-INCL = -I../incl/ -I../incl/googletest/
+INCL = -I../incl/ -I./ -I../incl/googletest/include/
 
 
 # -----------------------------------------------------
@@ -49,16 +49,14 @@ INCL = -I../incl/ -I../incl/googletest/
 # -----------------------------------------------------
 
 # List all objects that contain CPU code.
-# OBJ_NAMES :=  Main_test.o Simulator.o Kernels.o tests.o
-OBJ_NAMES :=  gtest_main.o
+OBJ_NAMES := gtest_main.o Kernels.o
 OBJS := $(addprefix $(BIN_PATH)/, $(OBJ_NAMES))
 
 # List all the objects that contain GPU code.
 # Overlap with the objects above is totally fine.
 # These are only related to linking, compiling is done automatically
 # based on the file extension (.cpp vs. .cu)
-# GPU_OBJ_NAMES := Simulator.o Kernels.o tests.o
-GPU_OBJ_NAMES := Simulator.o Kernels.o tests.o
+GPU_OBJ_NAMES := Kernels.o
 GPU_OBJS := $(addprefix $(BIN_PATH)/, $(GPU_OBJ_NAMES))
 
 # Find all headers in source dir.
@@ -69,7 +67,7 @@ HEADERS += $(wildcard $(SRC_PATH)/*.cuh)
 GPU_CODE := $(BIN_PATH)/GPUCode.o
 
 # Name of the final executable.
-EXEC := $(BIN_PATH)/cubble
+EXEC := $(BIN_PATH)/test_cubble
 
 # -----------------------------------------------------
 # Compilers to use
@@ -83,7 +81,7 @@ C_GPU := nvcc
 # External libraries to link
 # -----------------------------------------------------
 
-LIBS := -lcudart -lcurand -lnvToolsExt
+LIBS := -lcudart -lcurand -lnvToolsExt -L../incl/googletest/lib64 -lgtest -lgmock -lgtest_main
 
 
 # -----------------------------------------------------
@@ -126,9 +124,8 @@ all : | $(BIN_PATH)
 # -----------------------------------------------------
 
 # By default has some safety nets at place but also uses some optimizations.
-# $(EXEC) : $(HEADERS) $(OBJS) $(GPU_CODE)
-$(EXEC) : $(OBJS)
-	@$(C_CPU) -Wall -std=c++11 -pthread $(PROFILING_FLAGS) $(OBJS) $(LIBS) -o $@  -I./ -I../incl/googletest/include -L../incl/googletest/lib64 -lgtest -lgmock -lgtest_main
+$(EXEC) : $(HEADERS) $(OBJS) $(GPU_CODE)
+	$(C_CPU) $(CPU_FLAGS) $(PROFILING_FLAGS) $(OBJS) $(GPU_CODE) $(LIBS) -o $@ $(INCL)
 
 
 # -----------------------------------------------------
@@ -136,7 +133,7 @@ $(EXEC) : $(OBJS)
 # -----------------------------------------------------
 
 $(GPU_CODE) : $(GPU_OBJS)
-	@$(C_GPU) -Wall -std=c++11 -pthread $(PROFILING_FLAGS) $(GPU_ARCH) -dlink $^ -o $@
+	$(C_GPU) $(PROFILING_FLAGS) $(GPU_ARCH) -dlink $^ -o $@
 
 
 # -----------------------------------------------------
@@ -145,15 +142,15 @@ $(GPU_CODE) : $(GPU_OBJS)
 
 # CPU code
 $(BIN_PATH)/%.o : $(SRC_PATH)/%.cpp
-	@$(eval OPTIONS = $(CPU_FLAGS) $(COMMON_FLAGS) \
+	$(eval OPTIONS = $(CPU_FLAGS) $(COMMON_FLAGS) \
 	$(OPTIM_FLAGS) $(DEFINES) $(PROFILING_FLAGS))
-	@$(C_CPU) -Wall -std=c++11 -pthread $< $(OPTIONS) -c  -I./ -I../incl/googletest/include/ -o $@
+	$(C_CPU) $(CPU_FLAGS) $< $(OPTIONS) -c $(INCL) -o $@
 
 # GPU code
 $(BIN_PATH)/%.o : $(SRC_PATH)/%.cu
-	@$(eval OPTIONS = $(GPU_FLAGS) $(COMMON_FLAGS) \
+	$(eval OPTIONS = $(GPU_FLAGS) $(COMMON_FLAGS) \
 	$(OPTIM_FLAGS) $(DEFINES) $(NVCC_DEFINES) $(PROFILING_FLAGS))
-	@$(C_GPU) $< $(OPTIONS) -dc -I./ -I../incl/googletest/include/gtest -o $@
+	$(C_GPU) $< $(OPTIONS) -dc $(INCL) -o $@
 
 # -----------------------------------------------------
 # Clean up
@@ -169,11 +166,4 @@ clean :
 # -----------------------------------------------------
 
 $(BIN_PATH) :
-	@mkdir $(BIN_PATH)
-
-
-test: ../src/gtest_main.o
-	g++ -Wall -std=c++11 -pthread ../src/gtest_main.o -o test -I./ -I../incl/googletest/include/gtest -L../incl/googletest/lib64 -lgtest -lgmock -lgtest_main
-
-../src/gtest_main.o: ../src/gtest_main.cpp
-	g++ -Wall -std=c++11 -pthread -c -I./ -I../incl/googletest/include/gtest -o ../src/gtest_main.o ../src/gtest_main.cpp
+	mkdir $(BIN_PATH)
