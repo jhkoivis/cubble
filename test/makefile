@@ -49,14 +49,14 @@ INCL = -I../incl/ -I./ -I../incl/googletest/include/
 # -----------------------------------------------------
 
 # List all objects that contain CPU code.
-OBJ_NAMES := gtest_main.o Kernels.o
+OBJ_NAMES := gtest_main.o Kernels.o lol_cuda.o
 OBJS := $(addprefix $(BIN_PATH)/, $(OBJ_NAMES))
 
 # List all the objects that contain GPU code.
 # Overlap with the objects above is totally fine.
 # These are only related to linking, compiling is done automatically
 # based on the file extension (.cpp vs. .cu)
-GPU_OBJ_NAMES := Kernels.o
+GPU_OBJ_NAMES := Kernels.o lol_cuda.o
 GPU_OBJS := $(addprefix $(BIN_PATH)/, $(GPU_OBJ_NAMES))
 
 # Find all headers in source dir.
