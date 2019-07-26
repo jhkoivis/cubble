@@ -725,7 +725,7 @@ int test_me(void){
 	return 27;
 }
 
-__global__ void cuda_test(int *x, int *y, int *z)
+__device__ void ctst(float *x, float *y, float *z, int N)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	printf("thread id = %i\n", i);

@@ -11,6 +11,21 @@
 using namespace std;
 using namespace cubble;
 
+
+__device__ void dv(float* x, float* y, float* z, int N){
+	int tid = threadIdx.x + blockIdx.x * blockDim.x;
+	if (tid < N){
+		z[tid] = x[tid] + y[tid];
+	}
+}
+
+__global__ void test_local(float* x, float* y, float* z, int N){
+
+	cubble::ctst(x, y, z, N);
+
+}
+
+
 namespace ASSERT{
   int EQUAL(int x, int y){
 	  if (x == y){
@@ -40,16 +55,16 @@ void TEST_cubble_simple (void)
 
 void TEST_simple_cuda (void)
 {
-	int N = 128*16;
-	int *x, *y, *z;
-	int *x_d, *y_d, *z_d;
+	int N = 32;
+	float *x, *y, *z;
+	float *x_d, *y_d, *z_d;
 
-	x = (int *)malloc(sizeof(int) * N);
-	y = (int *)malloc(sizeof(int) * N);
-	z = (int *)malloc(sizeof(int) * N);
-	cudaMalloc( (void **)&x_d, sizeof(int) * N);
-	cudaMalloc( (void **)&y_d, sizeof(int) * N);
-	cudaMalloc( (void **)&z_d , sizeof(int) * N);
+	x = (float *)malloc(sizeof(float) * N);
+	y = (float *)malloc(sizeof(float) * N);
+	z = (float *)malloc(sizeof(float) * N);
+	cudaMalloc( (void **)&x_d, sizeof(float) * N);
+	cudaMalloc( (void **)&y_d, sizeof(float) * N);
+	cudaMalloc( (void **)&z_d , sizeof(float) * N);
 
 	// initialize x and y arrays on the host
 	for (int i = 0; i < N; i++) {
@@ -57,14 +72,18 @@ void TEST_simple_cuda (void)
 		y[i] = 2;
 	}
 
-	cudaMemcpy(x_d, x, sizeof(int) * N, cudaMemcpyHostToDevice);
-	cudaMemcpy(y_d, y, sizeof(int) * N, cudaMemcpyHostToDevice);
+	cudaMemcpy(x_d, x, sizeof(float) * N, cudaMemcpyHostToDevice);
+	cudaMemcpy(y_d, y, sizeof(float) * N, cudaMemcpyHostToDevice);
+
+	dim3 gridDim(1);
+	dim3 blockDim(N);
 
 	// Run kernel on 1M elements on the GPU
-	cuda_test<<<16, 128>>>(x_d, y_d, z_d);
+	test_local<<<gridDim, blockDim>>>(x_d, y_d, z_d, N);
+
 	cudaDeviceSynchronize();
 
-	cudaMemcpy(z, z_d, sizeof(int) * N, cudaMemcpyDeviceToHost);
+	cudaMemcpy(z, z_d, sizeof(float) * N, cudaMemcpyDeviceToHost);
 
 	for(int i = 0; i < N; i++){
 		cout << "z = " << z[i] << " for i = " << i << endl;

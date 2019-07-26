@@ -612,7 +612,7 @@ __global__ void pathLengthDistanceKernel(int numValues, double *pathLengths,
 }
 
 int test_me(void);
-__global__ void cuda_test(int *x, int *y, int *z);
+__device__ void ctst(float *x, float *y, float *z, int N);
 
 } // namespace cubble
 

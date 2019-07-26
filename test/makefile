@@ -116,7 +116,7 @@ endif
 
 .PHONY : all
 all : | $(BIN_PATH)
-	$(MAKE) -j8 $(EXEC)
+	@$(MAKE) -j8 $(EXEC)
 
 
 # -----------------------------------------------------
@@ -125,7 +125,7 @@ all : | $(BIN_PATH)
 
 # By default has some safety nets at place but also uses some optimizations.
 $(EXEC) : $(HEADERS) $(OBJS) $(GPU_CODE)
-	$(C_CPU) $(PROFILING_FLAGS) $(OBJS) $(GPU_CODE) $(LIBS) -o $@
+	@$(C_CPU) $(PROFILING_FLAGS) $(OBJS) $(GPU_CODE) $(LIBS) -o $@
 
 
 # -----------------------------------------------------
@@ -133,7 +133,7 @@ $(EXEC) : $(HEADERS) $(OBJS) $(GPU_CODE)
 # -----------------------------------------------------
 
 $(GPU_CODE) : $(GPU_OBJS)
-	$(C_GPU) $(PROFILING_FLAGS) $(GPU_ARCH) -dlink $^ -o $@
+	@$(C_GPU) $(PROFILING_FLAGS) $(GPU_ARCH) -dlink $^ -o $@
 
 
 # -----------------------------------------------------
@@ -142,15 +142,15 @@ $(GPU_CODE) : $(GPU_OBJS)
 
 # CPU code
 $(BIN_PATH)/%.o : $(SRC_PATH)/%.cpp
-	$(eval OPTIONS = $(CPU_FLAGS) $(COMMON_FLAGS) \
+	@$(eval OPTIONS = $(CPU_FLAGS) $(COMMON_FLAGS) \
 	$(OPTIM_FLAGS) $(DEFINES) $(PROFILING_FLAGS))
-	$(C_CPU) $< $(OPTIONS) -c -o $@
+	@$(C_CPU) $< $(OPTIONS) -c -o $@
 
 # GPU code
 $(BIN_PATH)/%.o : $(SRC_PATH)/%.cu
-	$(eval OPTIONS = $(GPU_FLAGS) $(COMMON_FLAGS) \
+	@$(eval OPTIONS = $(GPU_FLAGS) $(COMMON_FLAGS) \
 	$(OPTIM_FLAGS) $(DEFINES) $(NVCC_DEFINES) $(PROFILING_FLAGS))
-	$(C_GPU) $< $(OPTIONS) -dc -o $@
+	@$(C_GPU) $< $(OPTIONS) -dc -o $@
 
 # -----------------------------------------------------
 # Clean up
@@ -166,4 +166,4 @@ clean :
 # -----------------------------------------------------
 
 $(BIN_PATH) :
-	mkdir $(BIN_PATH)
+	@mkdir $(BIN_PATH)
