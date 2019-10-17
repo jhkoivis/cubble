@@ -1806,8 +1806,7 @@ void generateStartingData(Params &params, ivec bubblesPerDim)
   }
 }
 
-void initializeFromJson(const char *inputFileName, Params &params,
-                        ivec bubblesPerDim)
+void initializeFromJson(Params &params, ivec bubblesPerDim)
 {
   commonSetup(params);
 
