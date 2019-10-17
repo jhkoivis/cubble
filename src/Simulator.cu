@@ -1806,7 +1806,8 @@ void generateStartingData(Params &params, ivec bubblesPerDim)
   }
 }
 
-void initializeFromJson(const char *inputFileName, Params &params)
+void initializeFromJson(const char *inputFileName, Params &params,
+                        ivec bubblesPerDim)
 {
   commonSetup(params);
 
@@ -1977,9 +1978,9 @@ void initializeFromJson(const char *inputFileName, Params &params)
 
 namespace cubble
 {
-void parallelStart(Params &params, int idx)
+void parallelStart(Params &params, int idx, ivec bubblesPerDim)
 {
-  initializeFromJson(inputFileName.c_str(), params);
+  initializeFromJson(params, bubblesPerDim);
   if (params.inputs.snapshotFrequency > 0.0)
     saveSnapshotToFile(params);
 
@@ -2123,7 +2124,7 @@ void run(std::string &&inputFileName, std::string &&outputFileName)
 
   for (int i = 0; i < 4; i++)
   {
-    parallelStart(params, i);
+    parallelStart(params, i, bubblesPerDim);
   }
 }
 
