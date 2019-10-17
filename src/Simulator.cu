@@ -388,6 +388,16 @@ dim3 getGridSize(Params &params)
 
 void updateCellsAndNeighbors(Params &params)
 {
+  doBoundaryWrap(params.defaultKernelSize, 0, 0, params.state.numBubbles,
+                 params.ddps[(uint32_t)DDP::X], params.ddps[(uint32_t)DDP::Y],
+                 params.ddps[(uint32_t)DDP::Z], params.state.lbb,
+                 params.state.tfr, params.dips[(uint32_t)DIP::WRAP_COUNT_X],
+                 params.dips[(uint32_t)DIP::WRAP_COUNT_Y],
+                 params.dips[(uint32_t)DIP::WRAP_COUNT_Z],
+                 params.dips[(uint32_t)DIP::WRAP_COUNT_XP],
+                 params.dips[(uint32_t)DIP::WRAP_COUNT_YP],
+                 params.dips[(uint32_t)DIP::WRAP_COUNT_ZP]);
+
   dim3 gridSize = getGridSize(params);
   const ivec cellDim(gridSize.x, gridSize.y, gridSize.z);
 
@@ -1023,17 +1033,6 @@ double stabilize(Params &params)
 
       CUDA_CALL(cudaEventRecord(params.event1, params.gasStream));
 
-      doBoundaryWrap(params.defaultKernelSize, 0, 0, params.state.numBubbles,
-                     params.ddps[(uint32_t)DDP::XP],
-                     params.ddps[(uint32_t)DDP::YP],
-                     params.ddps[(uint32_t)DDP::ZP], params.state.lbb,
-                     params.state.tfr, params.dips[(uint32_t)DIP::WRAP_COUNT_X],
-                     params.dips[(uint32_t)DIP::WRAP_COUNT_Y],
-                     params.dips[(uint32_t)DIP::WRAP_COUNT_Z],
-                     params.dips[(uint32_t)DIP::WRAP_COUNT_XP],
-                     params.dips[(uint32_t)DIP::WRAP_COUNT_YP],
-                     params.dips[(uint32_t)DIP::WRAP_COUNT_ZP]);
-
       // Error
       // Wait for event
       CUDA_CALL(cudaEventSynchronize(params.event1));
@@ -1347,18 +1346,6 @@ bool integrate(Params &params)
       params.ddps[(uint32_t)DDP::Y0], params.dips[(uint32_t)DIP::WRAP_COUNT_YP],
       params.state.interval.y);
 #endif
-
-    // Boundary wrap
-    doBoundaryWrap(params.defaultKernelSize, 0, params.gasStream,
-                   params.state.numBubbles, params.ddps[(uint32_t)DDP::XP],
-                   params.ddps[(uint32_t)DDP::YP],
-                   params.ddps[(uint32_t)DDP::ZP], params.state.lbb,
-                   params.state.tfr, params.dips[(uint32_t)DIP::WRAP_COUNT_X],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_Y],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_Z],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_XP],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_YP],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_ZP]);
 
     // Wait for event
     CUDA_CALL(cudaEventSynchronize(params.event1));
@@ -1772,17 +1759,6 @@ void generateStartingData(Params &params, ivec bubblesPerDim)
       params.ddps[(uint32_t)DDP::DYDTO], params.ddps[(uint32_t)DDP::Z],
       params.ddps[(uint32_t)DDP::DZDTO]);
 
-    doBoundaryWrap(params.defaultKernelSize, 0, 0, params.state.numBubbles,
-                   params.ddps[(uint32_t)DDP::XP],
-                   params.ddps[(uint32_t)DDP::YP],
-                   params.ddps[(uint32_t)DDP::ZP], params.state.lbb,
-                   params.state.tfr, params.dips[(uint32_t)DIP::WRAP_COUNT_X],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_Y],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_Z],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_XP],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_YP],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_ZP]);
-
     KERNEL_LAUNCH(
       resetKernel, params.defaultKernelSize, 0, 0, 0.0, params.state.numBubbles,
       params.ddps[(uint32_t)DDP::DXDTO], params.ddps[(uint32_t)DDP::DYDTO],
@@ -1813,17 +1789,6 @@ void generateStartingData(Params &params, ivec bubblesPerDim)
       params.state.timeStep, params.ddps[(uint32_t)DDP::X],
       params.ddps[(uint32_t)DDP::DXDTO], params.ddps[(uint32_t)DDP::Y],
       params.ddps[(uint32_t)DDP::DYDTO]);
-
-    doBoundaryWrap(params.defaultKernelSize, 0, 0, params.state.numBubbles,
-                   params.ddps[(uint32_t)DDP::XP],
-                   params.ddps[(uint32_t)DDP::YP],
-                   params.ddps[(uint32_t)DDP::ZP], params.state.lbb,
-                   params.state.tfr, params.dips[(uint32_t)DIP::WRAP_COUNT_X],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_Y],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_Z],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_XP],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_YP],
-                   params.dips[(uint32_t)DIP::WRAP_COUNT_ZP]);
 
     KERNEL_LAUNCH(resetKernel, params.defaultKernelSize, 0, 0, 0.0,
                   params.state.numBubbles, params.ddps[(uint32_t)DDP::DXDTO],
