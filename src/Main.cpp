@@ -7,7 +7,8 @@
 
 namespace cubble
 {
-void run(std::string &&inputFileName, std::string &&outputFileName);
+void run(std::string &&inputFileName, std::string &&outputFileName,
+         int localRank);
 }
 
 int main(int argc, char **argv)
@@ -39,8 +40,37 @@ int main(int argc, char **argv)
               << "-------------------------------------------------------------"
                  "-----------\n"
               << std::endl;
+    MPI_Comm shared;
+    int localRank  = -1337;
+    int localSize  = -1337;
+    int numGpus    = -1337;
+    int returnCode = -1337;
 
-    cubble::run(std::string(argv[1]), std::string(argv[2]));
+    returnCode = MPI_Init(&argc, &argv);
+
+    if (returnCode != MPI_SUCCESS)
+    {
+      std::cout << "MPI Initialization failed!\n" << returnCode << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL,
+                        &shared);
+    MPI_Comm_size(shared, &localSize); // number of ranks in this node
+    MPI_Comm_rank(shared, &localRank); // my local rank
+    CUDA_CALL(cudaGetDeviceCount(&numGpus));
+
+    if (numGpus == localSize)
+      CUDA_CALL(cudaSetDevice(localRank));
+    else
+    {
+      std::cout
+        << "Local size (mpi) different from number of devices (cuda gpu)"
+        << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    cubble::run(std::string(argv[1]), std::string(argv[2]), localRank);
   }
   catch (const std::exception &e)
   {
@@ -51,5 +81,10 @@ int main(int argc, char **argv)
   }
 
   cudaDeviceReset();
+  returnCode = MPI_Finalize();
+
+  if (returnCode != MPI_SUCCESS)
+    return EXIT_FAILURE;
+
   return EXIT_SUCCESS;
 }

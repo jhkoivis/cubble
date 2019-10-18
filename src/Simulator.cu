@@ -10,6 +10,7 @@
 #include <curand.h>
 #include <fstream>
 #include <iostream>
+#include <mpi.h>
 #include <nvToolsExt.h>
 #include <signal.h>
 #include <sstream>
@@ -1806,8 +1807,10 @@ void generateStartingData(Params &params, ivec bubblesPerDim)
   }
 }
 
-void initializeFromJson(Params &params, ivec bubblesPerDim)
+void initializeFromJson(Params &params)
 {
+  ivec bubblesPerDim = ivec(0, 0, 0);
+  readInputs(params, inputFileName.c_str(), bubblesPerDim);
   commonSetup(params);
 
   // This parameter is used with serialization. It should be immutable and never
@@ -1977,9 +1980,12 @@ void initializeFromJson(Params &params, ivec bubblesPerDim)
 
 namespace cubble
 {
-void parallelStart(Params &params, int idx, ivec bubblesPerDim)
+void run(std::string &&inputFileName, std::string &&outputFileName,
+         int localRank)
 {
-  initializeFromJson(params, bubblesPerDim);
+  std::cout << "\n=====\nSetup\n=====" << std::endl;
+  Params params;
+  initializeFromJson(params);
   if (params.inputs.snapshotFrequency > 0.0)
     saveSnapshotToFile(params);
 
@@ -2111,20 +2117,6 @@ void parallelStart(Params &params, int idx, ivec bubblesPerDim)
     saveSnapshotToFile(params);
 
   deinit(params);
-}
-
-void run(std::string &&inputFileName, std::string &&outputFileName)
-{
-  std::cout << "\n=====\nSetup\n=====" << std::endl;
-
-  Params params;
-  ivec bubblesPerDim = ivec(0, 0, 0);
-  readInputs(params, inputFileName.c_str(), bubblesPerDim);
-
-  for (int i = 0; i < 4; i++)
-  {
-    parallelStart(params, i, bubblesPerDim);
-  }
 }
 
 } // namespace cubble
