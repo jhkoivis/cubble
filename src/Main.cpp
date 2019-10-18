@@ -29,6 +29,8 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  int returnCode = -1337;
+
   try
   {
     std::cout << "-------------------------------------------------------------"
@@ -45,7 +47,6 @@ int main(int argc, char **argv)
     int localRank  = -1337;
     int localSize  = -1337;
     int numGpus    = -1337;
-    int returnCode = -1337;
 
     returnCode = MPI_Init(&argc, &argv);
 
