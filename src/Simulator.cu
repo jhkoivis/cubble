@@ -1806,10 +1806,11 @@ void generateStartingData(Params &params, ivec bubblesPerDim)
   }
 }
 
-void initializeFromJson(Params &params)
+void initializeFromJson(const char *inputFileName, Params &params,
+                        int localRank)
 {
   ivec bubblesPerDim = ivec(0, 0, 0);
-  readInputs(params, inputFileName.c_str(), bubblesPerDim);
+  readInputs(params, inputFileName, bubblesPerDim);
   commonSetup(params);
 
   // This parameter is used with serialization. It should be immutable and never
@@ -1983,8 +1984,10 @@ void run(std::string &&inputFileName, std::string &&outputFileName,
          int localRank)
 {
   std::cout << "\n=====\nSetup\n=====" << std::endl;
+
   Params params;
-  initializeFromJson(params);
+  initializeFromJson(inputFileName.c_str(), params, localRank);
+
   if (params.inputs.snapshotFrequency > 0.0)
     saveSnapshotToFile(params);
 
@@ -2116,7 +2119,6 @@ void run(std::string &&inputFileName, std::string &&outputFileName,
     saveSnapshotToFile(params);
 
   deinit(params);
-  rc = MPI_Finalize();
 }
 
 } // namespace cubble
