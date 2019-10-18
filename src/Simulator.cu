@@ -790,7 +790,8 @@ void saveSnapshotToFile(Params &params)
   }
 
   std::stringstream ss;
-  ss << "snapshot.csv." << params.state.numSnapshots;
+  ss << "proc_" << params.mpiLocalRank << "_snapshot.csv."
+     << params.state.numSnapshots;
   std::ofstream file(ss.str().c_str(), std::ios::out);
   if (file.is_open())
   {
@@ -2066,7 +2067,9 @@ void run(std::string &&inputFileName, std::string &&outputFileName,
         getAvg(params.ddps[(uint32_t)DDP::R], params) / params.inputs.avgRad;
 
       // Add values to data stream
-      std::ofstream resultFile("results.dat", std::ios_base::app);
+      std::stringstream ss;
+      ss << "results_proc_" << params.mpiLocalRank << ".dat";
+      std::ofstream resultFile(ss.str(), std::ios_base::app);
       if (resultFile.is_open())
       {
         const double vx = getAvg(params.ddps[(uint32_t)DDP::DXDT], params);
