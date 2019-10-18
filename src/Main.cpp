@@ -9,7 +9,7 @@
 namespace cubble
 {
 void run(std::string &&inputFileName, std::string &&outputFileName,
-         int localRank);
+         int localRank, int localSize, const MPI_Comm &shared);
 }
 
 int main(int argc, char **argv)

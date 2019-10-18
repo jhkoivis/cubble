@@ -148,7 +148,6 @@ struct SimulationState
     equal &= numSnapshots == o.numSnapshots;
     equal &= timesPrinted == o.timesPrinted;
 
-    equal &= originalDataStride == o.originalDataStride;
     equal &= dataStride == o.dataStride;
     equal &= pairStride == o.pairStride;
 
@@ -177,7 +176,6 @@ struct SimulationState
     PRINT_PARAM(numPairs);
     PRINT_PARAM(numSnapshots);
     PRINT_PARAM(timesPrinted);
-    PRINT_PARAM(originalDataStride);
     PRINT_PARAM(dataStride);
     PRINT_PARAM(pairStride);
     std::cout << "----------------End----------------\n" << std::endl;
