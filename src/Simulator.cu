@@ -1811,14 +1811,10 @@ void initializeFromJson(const char *inputFileName, Params &params)
 {
   // Rank 0 reads input and sends it to others
   if (params.mpiLocalRank == 0)
-  {
     readInputs(params, inputFileName);
-    MPI_Send(params.deviceDoubleMemory, 5, MPI_DOUBLE, 1, 0,
-             params.mpiCommunicator);
-  }
-  else
-  {
-  }
+
+  MPI_Bcast(static_cast<void *>(&params.inputs), sizeof(params.inputs),
+            MPI_BYTE, 0, params.mpiCommunicator);
 
   ivec bubblesPerDim = ivec(0, 0, 0);
   commonSetup(params, bubblesPerDim);
