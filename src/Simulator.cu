@@ -1813,6 +1813,8 @@ void initializeFromJson(const char *inputFileName, Params &params)
   if (params.mpiLocalRank == 0)
   {
     readInputs(params, inputFileName);
+    MPI_Send(params.deviceDoubleMemory, 5, MPI_DOUBLE, 1, 0,
+             params.mpiCommunicator);
   }
   else
   {
