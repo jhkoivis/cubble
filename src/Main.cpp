@@ -43,10 +43,11 @@ int main(int argc, char **argv)
               << "-------------------------------------------------------------"
                  "-----------\n"
               << std::endl;
-    MPI_Comm shared;
-    int localRank  = -1337;
-    int localSize  = -1337;
-    int numGpus    = -1337;
+
+    MPI_Comm shared = NULL;
+    int localRank   = -1337;
+    int localSize   = -1337;
+    int numGpus     = -1337;
 
     returnCode = MPI_Init(&argc, &argv);
 
@@ -72,7 +73,8 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    cubble::run(std::string(argv[1]), std::string(argv[2]), localRank);
+    cubble::run(std::string(argv[1]), std::string(argv[2]), localRank,
+                localSize, shared);
   }
   catch (const std::exception &e)
   {

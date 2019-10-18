@@ -10,6 +10,7 @@
 #include <curand.h>
 #include <fstream>
 #include <iostream>
+#include <mpi.h>
 #include <nvToolsExt.h>
 #include <signal.h>
 #include <sstream>
@@ -117,7 +118,6 @@ struct SimulationState
   int numPairs           = 0;
   uint32_t numSnapshots  = 0;
   uint32_t timesPrinted  = 0;
-  uint32_t originalDataStride = 0;
   uint32_t dataStride    = 0;
   uint32_t pairStride    = 0;
 
@@ -295,6 +295,10 @@ struct Params
 
   KernelSize pairKernelSize = KernelSize(dim3(1024, 1, 1), dim3(128, 1, 1));
   KernelSize defaultKernelSize;
+
+  int mpiLocalRank          = -1337;
+  int mpiNumProcs           = -1337;
+  MPI_Comm mpiCommunicator;
 
   // Device memory & arrays of pointers to those memory chunks.
   int *deviceIntMemory       = nullptr;
@@ -1498,7 +1502,7 @@ double getSimulationBoxVolume(Params &params)
 
 #define JSON_READ(i, j, arg) i.arg = j[#arg]
 
-void readInputs(Params &params, const char *inputFileName, ivec &bubblesPerDim)
+void readInputs(Params &params, const char *inputFileName)
 {
   std::cout << "Reading inputs from file \"" << inputFileName << "\""
             << std::endl;
@@ -1546,7 +1550,11 @@ void readInputs(Params &params, const char *inputFileName, ivec &bubblesPerDim)
   }
   else
     throw std::runtime_error("Couldn't open input file!");
+}
+#undef JSON_READ
 
+void commonSetup(Params &params, ivec &bubblesPerDim)
+{
   // First calculate the size of the box and the starting number of bubbles
   dvec relDim   = params.inputs.boxRelDim;
   relDim        = relDim / relDim.x;
@@ -1591,16 +1599,11 @@ void readInputs(Params &params, const char *inputFileName, ivec &bubblesPerDim)
     maxNumCells = maxNumCells * maxNumCells;
 
   params.state.maxNumCells = maxNumCells;
-
   std::cout << "Maximum (theoretical) number of cells: "
             << params.state.maxNumCells
             << ", actual grid dimensions: " << gridDim.x << ", " << gridDim.y
             << ", " << gridDim.z << std::endl;
-}
-#undef JSON_READ
 
-void commonSetup(Params &params)
-{
   params.defaultKernelSize = KernelSize(128, params.state.numBubbles);
 
   // Streams
@@ -1806,17 +1809,19 @@ void generateStartingData(Params &params, ivec bubblesPerDim)
   }
 }
 
-void initializeFromJson(const char *inputFileName, Params &params,
-                        int localRank)
+void initializeFromJson(const char *inputFileName, Params &params)
 {
+  // Rank 0 reads input and sends it to others
+  if (params.mpiLocalRank == 0)
+  {
+    readInputs(params, inputFileName);
+  }
+  else
+  {
+  }
+
   ivec bubblesPerDim = ivec(0, 0, 0);
-  readInputs(params, inputFileName, bubblesPerDim);
-  commonSetup(params);
-
-  // This parameter is used with serialization. It should be immutable and never
-  // be changed after this. It just saves the original dataStride.
-  params.state.originalDataStride = params.state.dataStride;
-
+  commonSetup(params, bubblesPerDim);
   generateStartingData(params, bubblesPerDim);
 
   std::cout << "Letting bubbles settle after they've been created and before "
@@ -1981,12 +1986,15 @@ void initializeFromJson(const char *inputFileName, Params &params,
 namespace cubble
 {
 void run(std::string &&inputFileName, std::string &&outputFileName,
-         int localRank)
+         int localRank, int numProcs, const MPI_Comm &mpiCommunicator)
 {
   std::cout << "\n=====\nSetup\n=====" << std::endl;
 
   Params params;
-  initializeFromJson(inputFileName.c_str(), params, localRank);
+  params.mpiLocalRank = localRank;
+  params.mpiNumProcs     = numProcs;
+  params.mpiCommunicator = mpiCommunicator;
+  initializeFromJson(inputFileName.c_str(), params);
 
   if (params.inputs.snapshotFrequency > 0.0)
     saveSnapshotToFile(params);
