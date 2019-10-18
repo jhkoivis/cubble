@@ -2,6 +2,7 @@
 #include <cuda.h>
 #include <exception>
 #include <iostream>
+#include <mpi.h>
 #include <stdexcept>
 #include <string>
 

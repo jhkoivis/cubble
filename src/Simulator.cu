@@ -10,7 +10,6 @@
 #include <curand.h>
 #include <fstream>
 #include <iostream>
-#include <mpi.h>
 #include <nvToolsExt.h>
 #include <signal.h>
 #include <sstream>
@@ -2117,6 +2116,7 @@ void run(std::string &&inputFileName, std::string &&outputFileName,
     saveSnapshotToFile(params);
 
   deinit(params);
+  rc = MPI_Finalize();
 }
 
 } // namespace cubble
