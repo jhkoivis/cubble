@@ -1991,6 +1991,8 @@ void run(std::string &&inputFileName, std::string &&outputFileName,
   params.mpiLocalRank = localRank;
   params.mpiNumProcs     = numProcs;
   params.mpiCommunicator = mpiCommunicator;
+  std::cout << "mpi rank: " << params.mpiLocalRank
+            << "\nnum procs: " << params.mpiNumProcs << std::endl;
   initializeFromJson(inputFileName.c_str(), params);
 
   if (params.inputs.snapshotFrequency > 0.0)
